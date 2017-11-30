@@ -6,6 +6,7 @@ public class ObjetsARamasser : MonoBehaviour
 {
     public virtual void ActionObjetRamasse()
     {
+        _MGR_Son_Musique.Instance.PlaySound(gameObject.tag);
         Destroy(gameObject);
     }
 
