@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class _MGR_TimeLine : MonoBehaviour {
+public class _MGR_TimeLine : MonoBehaviour
+{
 
     private static _MGR_TimeLine p_instance = null;              //Static instance of GameManager which allows it to be accessed by any other script.
     public static _MGR_TimeLine Instance { get { return p_instance; } }     // READ ONLY
@@ -68,21 +69,24 @@ public class _MGR_TimeLine : MonoBehaviour {
         foreach (Event_TL _TL_event in __Events_TL)
         {
             // un objet valide ?
-            if (_TL_event.GO == null) { 
+            if (_TL_event.GO == null)
+            {
                 CommonDevTools.WARNING("objet event  non défini : NULL");
                 break;
             }
             // activer GO si inactif ? 
-            if (!_TL_event.GO.activeSelf)
+            if (_TL_event.GO.active == false)
                 if (_TL_event.activer_GO_si_inactif)
                     _TL_event.GO.SetActive(true);
-
             // recherche des scripts évenements  = components impémentant l'interface Interface_TL_Events  
             Interface_TL_Events[] __tabtle = _TL_event.GO.GetComponents<Interface_TL_Events>();
-            for (int i = 0; i < __tabtle.Length; i++)            {
+            for (int i = 0; i < __tabtle.Length; i++)
+
+            {
+                Debug.Log("nvruizegbze");
                 if (__tabtle[i].getDuration_TL_Event() <= 0f)
                 {
-                    CommonDevTools.WARNING("object " + _TL_event.GO.name+ " event n° " + i + " durée invalide  : IGNORE !");
+                    CommonDevTools.WARNING("object " + _TL_event.GO.name + " event n° " + i + " durée invalide  : IGNORE !");
                     continue;       // on passe à l'évenement suivant
                 }
                 if (__tabtle[i].getStartTime_TL_Event() > dureeMax)
@@ -91,19 +95,20 @@ public class _MGR_TimeLine : MonoBehaviour {
                     continue;       // on passe à l'évenement suivant
                 }
                 // evenement OK : ajouté 
-               print("object " + _TL_event.GO.name + " event n° " + i + " ajouté !");
+                print("object " + _TL_event.GO.name + " event n° " + i + " ajouté !");
 
                 p_Liste_TL_Events.Add(__tabtle[i]);
                 p_nb_TL_Events++;
             }
         }
-            
+
 
         // Methode 1
         ConstruireTimeLine();
     }
 
-    public void Update() {
+    public void Update()
+    {
         if (ChronoDemarre && !ChronoEnPause)
         {
             chrono += Time.deltaTime;
@@ -128,7 +133,7 @@ public class _MGR_TimeLine : MonoBehaviour {
     //*******************************************************************************************************//
     // Methode 1 & 2 
     enum TypeCdeEvent { START, STOP }
-    struct struct_evt_TL 
+    struct struct_evt_TL
     {
         public float time_evt_TL;
         public TypeCdeEvent cdeEvt_TL;
@@ -140,11 +145,11 @@ public class _MGR_TimeLine : MonoBehaviour {
     // ci dessous sera utilisé pour trier la liste avec la méthode sort()
     static int Compare_Struct_Evt_TL(struct_evt_TL x, struct_evt_TL y)
     {
-        return ((struct_evt_TL)x).time_evt_TL.CompareTo(((struct_evt_TL)y).time_evt_TL); 
+        return ((struct_evt_TL)x).time_evt_TL.CompareTo(((struct_evt_TL)y).time_evt_TL);
     }
 
     private List<struct_evt_TL> TimeLine;           // la timeline = planification de toutes les commandes à exécuter pendant le temps du jeu, soit démarer soit arrêter n évenement
-    private int indexTimeLine;                      // le prochain évenement à traiter 
+    private int indexTimeLine = 0;                  // le prochain évenement à traiter 
     private int maxIndexTimeLine;                   // le dernier évenement à traiter 
     private struct_evt_TL prochaine_cde_event;
 
@@ -152,8 +157,23 @@ public class _MGR_TimeLine : MonoBehaviour {
        y a t'il un évenement de la timeline à déclencher en fonction de la valeur actuelle du chrono  ?
     */
     private void Piloter_Event_TL()
-    {    
-        /*******************  ! ! ! A FAIRE ! ! !   *******************************/
+    {
+        if (indexTimeLine >= maxIndexTimeLine) return;
+        // partie non terminée (chrono en cours) mais plus d'événement à déclencher 
+        /*print("chrono " + chrono + " prochain event " + prochaine_cde_event.time_evt_TL);
+        print("'''''''''''''''''''''''''''''''''''''''indexTimeLine " + indexTimeLine + " maxIndexTimeLine " + maxIndexTimeLine);
+        */
+        while (chrono > prochaine_cde_event.time_evt_TL)
+        {
+            if (prochaine_cde_event.cdeEvt_TL == TypeCdeEvent.START)
+                prochaine_cde_event.evt_TL.start_TL_Event();
+            else
+                prochaine_cde_event.evt_TL.stop_TL_Event();
+
+            indexTimeLine++;
+            if (indexTimeLine >= maxIndexTimeLine) break;
+            prochaine_cde_event = TimeLine[indexTimeLine];
+        }
     }
 
     /* sera appelée une seule fois avant le départ du jeu  depuis la méthode Configurer ()
@@ -165,44 +185,86 @@ public class _MGR_TimeLine : MonoBehaviour {
 
         il faut remplir la liste List<struct_evt_TL> TimeLine;  qui sera interprétée par Piloter_Event_TL() pendant l'exécution
     */
-    private void ConstruireTimeLine() {
-/*******************  ! ! ! A FAIRE ! ! !   *******************************/
+    private void ConstruireTimeLine()
+    {
+        /*******************  ! ! ! A FAIRE ! ! !   *******************************/
+        struct_evt_TL __e;
+        float __time_debut_evt_TL;
+        float __period;
+
+        if (TimeLine != null) TimeLine.Clear(); // vider la liste (si 2ème ou suivantes exécutions....
+        else TimeLine = new List<struct_evt_TL>(); // 1ere exécution : instantiation
+        p_nb_TL_Events = 0;
+        //pour chaque event de la liste d'event
+        foreach (Interface_TL_Events __evTL in p_Liste_TL_Events)
+        {
+            __time_debut_evt_TL = __evTL.getStartTime_TL_Event();
+            //si c'est periodique tu fait plein de fois
+            while ((__time_debut_evt_TL < dureeMax) && (__time_debut_evt_TL < __evTL.getStopTime_TL_Event()))
+            {
+
+                // ajouter dans la timeline les ordres de début et de fin de l'évenement
+                __e = new struct_evt_TL(__time_debut_evt_TL, TypeCdeEvent.START, __evTL);
+                TimeLine.Add(__e);
+                __e = new struct_evt_TL(__time_debut_evt_TL + __evTL.getDuration_TL_Event(), TypeCdeEvent.STOP, __evTL);
+                TimeLine.Add(__e);
+
+                if (__evTL.isPeriodic_TL_Event(out __period))
+                    __time_debut_evt_TL += __period;
+                else
+                    break;
+
+            }
+        }
+        maxIndexTimeLine = TimeLine.Count;
+
+        print(maxIndexTimeLine + " evnt TL ont été ajoutés ");
+
+        // TRIER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        TimeLine.Sort(Compare_Struct_Evt_TL);
+
     }
     //*******************************************************************************************************//
 
 
 
-    public void StartChrono() {
+    public void StartChrono()
+    {
         chrono = 0;
         ChronoDemarre = true;
         foreach (Interface_TL_Events evTL in p_Liste_TL_Events)
             evTL.TL_ChronoDemarre();
         indexTimeLine = 0;
-        //prochaine_cde_event = TimeLine[0];    // à décommenter une fois la structure timeline créée
+        prochaine_cde_event = TimeLine[0];    // à décommenter une fois la structure timeline créée
     }
     private void StartChrono(float __delay) { Invoke("StartChrono", __delay); }
     private void ReStartChrono() { dureeJeu += chrono; StartChrono(); }
-    private void PauseChrono() {
+    private void PauseChrono()
+    {
         ChronoEnPause = true;
-        foreach (Interface_TL_Events evTL in p_Liste_TL_Events) {
+        foreach (Interface_TL_Events evTL in p_Liste_TL_Events)
+        {
             if (evTL.isPausable_TL_Event()) evTL.pause_TL_Event();
             evTL.TL_ChronoEnPause();
         }
     }
-    private void ReprendreChrono()              {
+    private void ReprendreChrono()
+    {
         ChronoEnPause = false;
         foreach (Interface_TL_Events evTL in p_Liste_TL_Events)
-             evTL.TL_ChronoReprise();
+            evTL.TL_ChronoReprise();
     }
 
-    private void TestStopChrono() {
+    private void TestStopChrono()
+    {
         if (chrono > dureeMax)
         {
             FinDePartie();
             _MGR_SceneManager.Instance.FinDePartie(_MGR_SceneManager.FIN_DE_PARTIE.PERDU_CHRONO);
         }
     }
-    public  void FinDePartie() {
+    public void FinDePartie()
+    {
         ChronoDemarre = false;
         dureeJeu += chrono;
         foreach (Interface_TL_Events evTL in p_Liste_TL_Events)

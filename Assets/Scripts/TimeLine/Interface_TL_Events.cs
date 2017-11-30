@@ -11,7 +11,7 @@ public interface Interface_TL_Events   {
     float getStartTime_TL_Event();   // retourne à quel moment doit se déclencher l'évenement
     float getStopTime_TL_Event();   // retourne à quel moment doit se déclencher l'évenement
     float getDuration_TL_Event();    // retourne la durée de l'évenement
-    bool  isPerdiodic_TL_Event(out float period);    // retourne si événement périodique et la période
+    bool  isPeriodic_TL_Event(out float period);    // retourne si événement périodique et la période
 
 
     void start_TL_Event();                              // démarer l'évenement
