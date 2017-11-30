@@ -14,8 +14,8 @@ public class Action_cube : Action_Scenario_Etape
 	override public void Update () {
 		if(Input.GetKey(KeyCode.Space))
             Declencher_Etape_Suivante_Du_Scenario();
-        if (Input.anyKey)
-            CommonDevTools.DEBUG(descriptionAction);    // en attendant meilleure UI....
+        /*if (Input.anyKey)
+            CommonDevTools.DEBUG(descriptionAction);    // en attendant meilleure UI....*/
     }
 
 
