@@ -47,7 +47,6 @@ public class _MGR_GamePlay : MonoBehaviour {
         _MGR_TimeLine.Instance.StartChrono();
     }
 
-
     private uint AugmenterScore(int _bonus)
     {
         return (score = (score - _bonus > 0) ? (uint)(score - _bonus) : 0);
@@ -64,7 +63,7 @@ public class _MGR_GamePlay : MonoBehaviour {
         else
             __bonus = p_allBonus[_strBonus];
 
-        print("score = " + score + " + nouveau bonus" + __bonus);
+        print("score = " + score + " + nouveau bonus " + __bonus);
         return AugmenterScore(__bonus);
     }
 }
